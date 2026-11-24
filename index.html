@@ -34,7 +34,7 @@
       position: fixed;
       inset: 0;
       z-index: 20;
-      background: radial-gradient(circle at center, rgba(8, 14, 28, 0.88) 0%, rgba(2, 3, 8, 0.97) 100%);
+      background: radial-gradient(circle at center, rgba(8, 14, 28, 0.85) 0%, rgba(2, 3, 8, 0.96) 100%);
       backdrop-filter: blur(12px);
       display: flex;
       flex-direction: column;
@@ -81,66 +81,34 @@
       margin-bottom: 2.4rem;
     }
 
-    .drop-zone {
-      border: 1px solid rgba(56, 242, 214, 0.35);
-      background: rgba(10, 18, 34, 0.55);
-      border-radius: 16px;
-      padding: 2.2rem 2.8rem;
-      max-width: 480px;
-      width: 100%;
-      cursor: pointer;
-      transition: all 0.35s ease;
-      box-shadow: 0 0 40px rgba(56, 242, 214, 0.08);
-    }
-
-    .drop-zone:hover, .drop-zone.dragover {
-      border-color: #ffd27d;
-      background: rgba(22, 34, 58, 0.75);
-      box-shadow: 0 0 55px rgba(255, 210, 125, 0.2);
-      transform: translateY(-2px);
-    }
-
     .btn-primary {
       display: inline-block;
       font-family: 'Space Mono', monospace;
-      font-size: 0.82rem;
-      letter-spacing: 0.22em;
+      font-size: 0.9rem;
+      letter-spacing: 0.25em;
       text-transform: uppercase;
       color: #03060d;
       background: linear-gradient(135deg, #38f2d6 0%, #ffd27d 100%);
-      padding: 0.9rem 1.9rem;
+      padding: 1.1rem 2.6rem;
       border-radius: 999px;
       font-weight: 700;
-      margin-bottom: 0.9rem;
       border: none;
       cursor: pointer;
+      box-shadow: 0 0 35px rgba(56, 242, 214, 0.28);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .drop-hint {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.72rem;
-      color: rgba(244, 241, 234, 0.55);
-      letter-spacing: 0.08em;
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 0 55px rgba(255, 210, 125, 0.45);
     }
 
-    .demo-link {
-      margin-top: 1.5rem;
+    .track-meta {
+      margin-top: 1.1rem;
       font-family: 'Space Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
       color: rgba(244, 241, 234, 0.5);
-      background: none;
-      border: none;
-      border-bottom: 1px solid rgba(244, 241, 234, 0.25);
-      padding-bottom: 3px;
-      cursor: pointer;
-      transition: color 0.3s ease;
-    }
-
-    .demo-link:hover {
-      color: #38f2d6;
-      border-color: #38f2d6;
     }
 
     #hud {
@@ -287,18 +255,14 @@
 <body>
   <div id="canvas-container"></div>
 
+  <!-- Pantalla de inicio directa con el track precargado -->
   <div id="intro-overlay">
     <div class="studio-tag">RONIN GANG STUDIO // OBRA AUDIOVISUAL TOTAL</div>
     <h1 class="main-title">EL DESPERTAR DEL CÓDIGO VIVO</h1>
     <p class="sub-title">“Maybe consciousness isn't something we need to escape from. Maybe it's the place where existence becomes experience.”</p>
 
-    <div class="drop-zone" id="drop-zone">
-      <button class="btn-primary" id="select-file-btn">Cargar EXISTENCIAL TRACK.wav</button>
-      <div class="drop-hint">Arrastra tu archivo .WAV aquí o haz clic para seleccionarlo (04:02)</div>
-      <input type="file" id="audio-input" accept=".wav,audio/wav,audio/*" style="display:none" />
-    </div>
-
-    <button class="demo-link" id="demo-mode-btn">Iniciar en modo visual continuo (sin archivo)</button>
+    <button class="btn-primary" id="start-btn">Iniciar Experiencia</button>
+    <div class="track-meta">AUDIO SINCRONIZADO · 04:02 · USA AURICULARES</div>
   </div>
 
   <div id="subtitle-box">
@@ -310,9 +274,9 @@
       <div class="brand-badge"><span>RONIN GANG STUDIO</span> // THE EXPERIENCE</div>
       <div class="controls-group">
         <button class="hud-btn" id="play-pause-btn">Pausa</button>
+        <button class="hud-btn" id="restart-btn">Reiniciar</button>
         <button class="hud-btn" id="toggle-subs-btn">Subtítulos: ON (T)</button>
         <button class="hud-btn" id="toggle-hud-btn">Modo Cine (H)</button>
-        <button class="hud-btn" id="change-audio-btn">Cambiar WAV</button>
       </div>
     </div>
 
@@ -325,7 +289,8 @@
     </div>
   </div>
 
-  <audio id="audio-element" crossorigin="anonymous"></audio>
+  <!-- Apunta directamente al archivo WAV en la raíz del repositorio -->
+  <audio id="audio-element" src="./EXISTENCIAL%20TRACK.wav" preload="auto" crossorigin="anonymous"></audio>
 
   <script type="importmap">
     {
@@ -638,19 +603,15 @@
     scene.add(particleSystem);
 
     // =========================================================================
-    // 7. MOTOR DE AUDIO WEB AUDIO API (FFT EN TIEMPO REAL) + CONTROLES
+    // 7. MOTOR DE AUDIO WEB AUDIO API + CONTROLES DIRECTOS
     // =========================================================================
     const audioEl = document.getElementById('audio-element');
     const introOverlay = document.getElementById('intro-overlay');
-    const dropZone = document.getElementById('drop-zone');
-    const selectFileBtn = document.getElementById('select-file-btn');
-    const audioInput = document.getElementById('audio-input');
-    const demoModeBtn = document.getElementById('demo-mode-btn');
-
+    const startBtn = document.getElementById('start-btn');
     const playPauseBtn = document.getElementById('play-pause-btn');
+    const restartBtn = document.getElementById('restart-btn');
     const toggleSubsBtn = document.getElementById('toggle-subs-btn');
     const toggleHudBtn = document.getElementById('toggle-hud-btn');
-    const changeAudioBtn = document.getElementById('change-audio-btn');
     const progressTrack = document.getElementById('progress-track');
     const progressFill = document.getElementById('progress-fill');
     const timeDisplay = document.getElementById('time-display');
@@ -662,9 +623,7 @@
     let audioCtx = null;
     let analyser = null;
     let dataArray = null;
-    let isAudioLoaded = false;
-    let isDemoMode = false;
-    let demoStartTime = 0;
+    let isStarted = false;
     const TOTAL_DURATION = 242.0;
 
     function setupAudioContext() {
@@ -680,47 +639,17 @@
       dataArray = new Uint8Array(analyser.frequencyBinCount);
     }
 
-    function loadAudioFile(file) {
-      if (!file) return;
-      const url = URL.createObjectURL(file);
-      audioEl.src = url;
+    startBtn.addEventListener('click', () => {
       setupAudioContext();
       if (audioCtx.state === 'suspended') audioCtx.resume();
       audioEl.play();
-      isAudioLoaded = true;
-      isDemoMode = false;
+      isStarted = true;
       introOverlay.classList.add('hidden');
       playPauseBtn.textContent = 'Pausa';
-    }
-
-    selectFileBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      audioInput.click();
-    });
-    dropZone.addEventListener('click', () => audioInput.click());
-    audioInput.addEventListener('change', (e) => loadAudioFile(e.target.files[0]));
-
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) loadAudioFile(e.dataTransfer.files[0]);
-    });
-
-    demoModeBtn.addEventListener('click', () => {
-      isDemoMode = true;
-      isAudioLoaded = false;
-      demoStartTime = performance.now() * 0.001;
-      introOverlay.classList.add('hidden');
-      playPauseBtn.textContent = 'Modo Visual';
     });
 
     playPauseBtn.addEventListener('click', () => {
-      if (!isAudioLoaded) return;
+      if (!isStarted) return;
       if (audioEl.paused) {
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         audioEl.play();
@@ -731,8 +660,13 @@
       }
     });
 
-    changeAudioBtn.addEventListener('click', () => {
-      audioInput.click();
+    restartBtn.addEventListener('click', () => {
+      audioEl.currentTime = 0;
+      if (audioEl.paused) {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        audioEl.play();
+        playPauseBtn.textContent = 'Pausa';
+      }
     });
 
     let subsEnabled = true;
@@ -749,14 +683,14 @@
     window.addEventListener('keydown', (e) => {
       if (e.key.toLowerCase() === 'h') hud.classList.toggle('clean-mode');
       if (e.key.toLowerCase() === 't') toggleSubsBtn.click();
-      if (e.code === 'Space' && isAudioLoaded) {
+      if (e.code === 'Space' && isStarted) {
         e.preventDefault();
         playPauseBtn.click();
       }
     });
 
     progressTrack.addEventListener('click', (e) => {
-      if (!isAudioLoaded) return;
+      if (!isStarted) return;
       const rect = progressTrack.getBoundingClientRect();
       const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const dur = audioEl.duration || TOTAL_DURATION;
@@ -779,23 +713,15 @@
       requestAnimationFrame(animate);
 
       const elapsed = clock.getElapsedTime();
-      let currentTime = 0;
-      let duration = TOTAL_DURATION;
-
-      if (isAudioLoaded) {
-        currentTime = audioEl.currentTime;
-        duration = audioEl.duration || TOTAL_DURATION;
-      } else if (isDemoMode) {
-        currentTime = ((performance.now() * 0.001) - demoStartTime) % TOTAL_DURATION;
-      }
-
+      const currentTime = isStarted ? audioEl.currentTime : 0;
+      const duration = audioEl.duration || TOTAL_DURATION;
       const progress = Math.min(1, Math.max(0, currentTime / duration));
 
-      let bass = 0.15 + Math.sin(elapsed * 2.2) * 0.08;
-      let mid = 0.15 + Math.cos(elapsed * 1.5) * 0.08;
-      let high = 0.12 + Math.sin(elapsed * 3.1) * 0.06;
+      let bass = 0.14 + Math.sin(elapsed * 2.2) * 0.07;
+      let mid = 0.14 + Math.cos(elapsed * 1.5) * 0.07;
+      let high = 0.12 + Math.sin(elapsed * 3.1) * 0.05;
 
-      if (isAudioLoaded && analyser && !audioEl.paused) {
+      if (isStarted && analyser && !audioEl.paused) {
         analyser.getByteFrequencyData(dataArray);
         let bSum = 0, mSum = 0, hSum = 0;
         for (let i = 0; i < 12; i++) bSum += dataArray[i];
@@ -888,7 +814,7 @@
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.03);
       }
 
-      if (isAudioLoaded || isDemoMode) {
+      if (isStarted) {
         const activeLine = LYRICS_TIMELINE.find(
           (item) => currentTime >= item.start && currentTime <= item.end
         );
