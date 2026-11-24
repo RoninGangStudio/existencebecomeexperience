@@ -198,7 +198,7 @@
       text-shadow: 0 0 24px rgba(0, 0, 0, 0.95), 0 0 40px rgba(56, 242, 214, 0.35);
       opacity: 0;
       transform: translateY(10px);
-      transition: opacity 0.85s ease, transform 0.85s ease;
+      transition: opacity 0.45s ease, transform 0.45s ease;
     }
 
     #subtitle-text.visible {
@@ -250,12 +250,28 @@
       color: rgba(244, 241, 234, 0.75);
       white-space: nowrap;
     }
+
+    #sync-toast {
+      position: fixed;
+      top: 4.5rem;
+      right: 1.8rem;
+      z-index: 30;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      background: rgba(5, 12, 24, 0.85);
+      border: 1px solid #38f2d6;
+      color: #38f2d6;
+      padding: 0.5rem 0.9rem;
+      border-radius: 6px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
 
-  <!-- Pantalla de inicio directa con el track precargado -->
   <div id="intro-overlay">
     <div class="studio-tag">RONIN GANG STUDIO // OBRA AUDIOVISUAL TOTAL</div>
     <h1 class="main-title">EL DESPERTAR DEL CÓDIGO VIVO</h1>
@@ -268,6 +284,8 @@
   <div id="subtitle-box">
     <div id="subtitle-text"></div>
   </div>
+
+  <div id="sync-toast"></div>
 
   <div id="hud">
     <div class="top-bar">
@@ -289,7 +307,6 @@
     </div>
   </div>
 
-  <!-- Apunta directamente al archivo WAV en la raíz del repositorio -->
   <audio id="audio-element" src="./EXISTENCIAL%20TRACK.wav" preload="auto" crossorigin="anonymous"></audio>
 
   <script type="importmap">
@@ -309,35 +326,38 @@
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
     // =========================================================================
-    // 1. LÍNEA DE TIEMPO POÉTICA SINCRONIZADA A EXISTENCIAL TRACK.wav (04:02)
+    // 1. AJUSTE FINO Y LÍNEA DE TIEMPO POÉTICA (0:00 -> 4:02)
     // =========================================================================
+    // Cambia este valor si todo el texto está adelantado (+) o atrasado (-), ej: -2.0 o 1.5
+    const SUBTITLE_OFFSET_SECONDS = 0.0;
+
     const LYRICS_TIMELINE = [
-      { start: 13.0, end: 18.0, text: "There is the world" },
-      { start: 21.0, end: 26.5, text: "everyone can describe." },
-      { start: 27.5, end: 31.0, text: "Buildings." },
-      { start: 33.5, end: 37.5, text: "Numbers." },
-      { start: 40.5, end: 44.5, text: "Traffic." },
-      { start: 47.0, end: 51.5, text: "Time." },
-      { start: 53.5, end: 59.0, text: "But there is another world" },
-      { start: 59.5, end: 64.5, text: "that only exists" },
-      { start: 67.5, end: 73.0, text: "when you experience it." },
-      { start: 81.5, end: 91.5, text: "The taste of coffee<br>before sunrise." },
-      { start: 96.5, end: 105.5, text: "The cold floor<br>under your feet." },
-      { start: 110.5, end: 121.5, text: "A song that suddenly takes you<br>somewhere you haven't been in years." },
-      { start: 124.5, end: 137.0, text: "The face of someone you love<br>when they don't know you're looking." },
-      { start: 141.5, end: 150.5, text: "Nobody can measure<br>what that moment feels like." },
-      { start: 154.5, end: 159.0, text: "And yet..." },
-      { start: 161.0, end: 167.0, text: "that is your life." },
-      { start: 175.0, end: 179.5, text: "Not the statistics." },
-      { start: 179.8, end: 183.5, text: "Not the biography." },
-      { start: 184.0, end: 188.0, text: "The experience." },
-      { start: 188.5, end: 194.5, text: "The strange miracle<br>of being inside a body" },
-      { start: 195.0, end: 202.0, text: "while the world keeps happening around you." },
-      { start: 204.5, end: 213.5, text: "Maybe consciousness isn't something<br>we need to escape from." },
-      { start: 214.0, end: 224.5, text: "Maybe it's the place<br>where existence becomes experience." },
-      { start: 228.5, end: 233.5, text: "And right now..." },
-      { start: 234.0, end: 237.5, text: "I am here." },
-      { start: 238.0, end: 242.5, text: "Feeling it." }
+      { start: 13.5, end: 18.0, text: "There is the world" },
+      { start: 19.5, end: 25.0, text: "everyone can describe." },
+      { start: 26.5, end: 30.5, text: "Buildings." },
+      { start: 33.0, end: 37.5, text: "Numbers." },
+      { start: 40.0, end: 44.5, text: "Traffic." },
+      { start: 46.5, end: 51.0, text: "Time." },
+      { start: 53.0, end: 58.5, text: "But there is another world" },
+      { start: 59.0, end: 64.5, text: "that only exists" },
+      { start: 67.0, end: 72.5, text: "when you experience it." },
+      { start: 81.0, end: 91.0, text: "The taste of coffee<br>before sunrise." },
+      { start: 96.0, end: 105.0, text: "The cold floor<br>under your feet." },
+      { start: 110.0, end: 121.0, text: "A song that suddenly takes you<br>somewhere you haven't been in years." },
+      { start: 124.0, end: 136.5, text: "The face of someone you love<br>when they don't know you're looking." },
+      { start: 141.0, end: 150.0, text: "Nobody can measure<br>what that moment feels like." },
+      { start: 154.0, end: 158.5, text: "And yet..." },
+      { start: 160.5, end: 166.5, text: "that is your life." },
+      { start: 174.5, end: 179.0, text: "Not the statistics." },
+      { start: 179.5, end: 183.2, text: "Not the biography." },
+      { start: 183.6, end: 187.8, text: "The experience." },
+      { start: 188.2, end: 194.2, text: "The strange miracle<br>of being inside a body" },
+      { start: 194.8, end: 201.8, text: "while the world keeps happening around you." },
+      { start: 204.0, end: 213.0, text: "Maybe consciousness isn't something<br>we need to escape from." },
+      { start: 213.5, end: 224.0, text: "Maybe it's the place<br>where existence becomes experience." },
+      { start: 228.0, end: 233.0, text: "And right now..." },
+      { start: 233.5, end: 237.2, text: "I am here." },
+      { start: 237.6, end: 242.5, text: "Feeling it." }
     ];
 
     // =========================================================================
@@ -603,7 +623,7 @@
     scene.add(particleSystem);
 
     // =========================================================================
-    // 7. MOTOR DE AUDIO WEB AUDIO API + CONTROLES DIRECTOS
+    // 7. MOTOR DE AUDIO WEB AUDIO API + HERRAMIENTA DE CALIBRACIÓN (TECLA M)
     // =========================================================================
     const audioEl = document.getElementById('audio-element');
     const introOverlay = document.getElementById('intro-overlay');
@@ -618,6 +638,7 @@
     const actLabel = document.getElementById('act-label');
     const subtitleBox = document.getElementById('subtitle-box');
     const subtitleText = document.getElementById('subtitle-text');
+    const syncToast = document.getElementById('sync-toast');
     const hud = document.getElementById('hud');
 
     let audioCtx = null;
@@ -625,6 +646,20 @@
     let dataArray = null;
     let isStarted = false;
     const TOTAL_DURATION = 242.0;
+
+    // Marcador interactivo con tecla M
+    let tapIndex = 0;
+    const recordedCues = [];
+    let toastTimer = null;
+
+    function showToast(msg) {
+      syncToast.textContent = msg;
+      syncToast.style.opacity = '1';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        syncToast.style.opacity = '0';
+      }, 1800);
+    }
 
     function setupAudioContext() {
       if (audioCtx) return;
@@ -662,6 +697,8 @@
 
     restartBtn.addEventListener('click', () => {
       audioEl.currentTime = 0;
+      tapIndex = 0;
+      recordedCues.length = 0;
       if (audioEl.paused) {
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         audioEl.play();
@@ -686,6 +723,22 @@
       if (e.code === 'Space' && isStarted) {
         e.preventDefault();
         playPauseBtn.click();
+      }
+      // Tecla M: graba el timestamp exacto de cada verso en consola (F12)
+      if (e.key.toLowerCase() === 'm' && isStarted) {
+        const t = Number(audioEl.currentTime.toFixed(2));
+        if (tapIndex < LYRICS_TIMELINE.length) {
+          const phrase = LYRICS_TIMELINE[tapIndex].text;
+          recordedCues.push({ start: t, end: Number((t + 4.5).toFixed(2)), text: phrase });
+          if (recordedCues.length > 1) {
+            recordedCues[recordedCues.length - 2].end = Number((t - 0.15).toFixed(2));
+          }
+          showToast(`Marca #${tapIndex + 1} (${t}s): ${phrase.replace('<br>', ' ')}`);
+          console.clear();
+          console.log('=== COPIA ESTE ARRAY EN LYRICS_TIMELINE ===');
+          console.log(JSON.stringify(recordedCues, null, 2));
+          tapIndex++;
+        }
       }
     });
 
@@ -738,20 +791,20 @@
       coreUniforms.uHigh.value = THREE.MathUtils.lerp(coreUniforms.uHigh.value, high, 0.2);
       coreUniforms.uProgress.value = progress;
 
-      if (currentTime < 53.5) {
+      if (currentTime < 53.0) {
         actLabel.textContent = 'ACTO I · EL MUNDO MEDIBLE';
         gridHelper1.material.opacity = 0.34 * (1 - currentTime / 60);
         gridHelper2.material.opacity = 0.24 * (1 - currentTime / 60);
         merkabaMat.opacity = 0.12 + bass * 0.15;
         bloomPass.strength = 1.05 + bass * 0.35;
-      } else if (currentTime < 141.5) {
+      } else if (currentTime < 141.0) {
         actLabel.textContent = 'ACTO II · EL UMBRAL DE LO SENTIDO';
         gridHelper1.material.opacity = 0.04;
         gridHelper2.material.opacity = 0.04;
         merkabaMat.color.set('#38f2d6');
         merkabaMat.opacity = 0.24 + bass * 0.25;
         bloomPass.strength = 1.25 + bass * 0.45;
-      } else if (currentTime < 204.5) {
+      } else if (currentTime < 204.0) {
         actLabel.textContent = 'ACTO III · EL MILAGRO DE HABITAR EL CUERPO';
         merkabaMat.color.set('#7ef9e5');
         merkabaMat.opacity = 0.34 + bass * 0.35;
@@ -815,8 +868,9 @@
       }
 
       if (isStarted) {
+        const syncedTime = currentTime + SUBTITLE_OFFSET_SECONDS;
         const activeLine = LYRICS_TIMELINE.find(
-          (item) => currentTime >= item.start && currentTime <= item.end
+          (item) => syncedTime >= item.start && syncedTime <= item.end
         );
         const nextText = activeLine ? activeLine.text : '';
         if (nextText !== currentSubtitle) {
